@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@theme {
+  --color-beige: #F2EDE4;
+  --color-card-yellow: #D4A827;
+  --color-card-green: #2A8C6E;
+  --color-card-coral: #E05C4A;
+  --color-card-blue: #3D6FE8;
+  --color-accent: #3D6FE8;
+}

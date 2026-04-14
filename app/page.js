@@ -14,6 +14,8 @@ export default function Home() {
     { id: 3, title: 'Rédiger la documentation', description: 'Documenter les composants et les règles du projet.', priority: 'Low', completed: true },
   ]);
 
+  const [showForm, setShowForm] = useState(false);
+
   /* Bascule l'état complété d'une tâche */
   const handleToggle = (id) => {
     setTasks(tasks.map((task) =>
@@ -29,6 +31,7 @@ export default function Home() {
   /* Ajoute une nouvelle tâche en haut de la liste */
   const handleCreate = (newTask) => {
     setTasks((prev) => [newTask, ...prev]);
+    setShowForm(false);
   };
 
   /* États des filtres */
@@ -44,44 +47,48 @@ export default function Home() {
     .filter((task) => (priority ? task.priority === priority : true));
 
   return (
-    /* Conteneur plein écran centré */
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4 text-center">
-      {/* Titre principal */}
-      <h1 className="text-5xl font-bold tracking-tight text-gray-900">
-        TaskManager
-      </h1>
+    <main className="min-h-screen bg-[#F2EDE4] px-4 py-10 sm:px-8">
+      {/* Header */}
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <p className="text-sm font-medium text-stone-500 tracking-wide uppercase">Bonjour 👋</p>
+            <h1 className="text-4xl font-black text-stone-900 leading-tight">
+              Task<span className="text-[#3D6FE8]">Manager</span>
+            </h1>
+          </div>
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            aria-label="Créer une nouvelle tâche"
+            className="flex items-center gap-2 bg-[#3D6FE8] hover:bg-blue-700 active:scale-95 transition-all text-white font-bold px-5 py-3 rounded-full shadow-lg shadow-blue-500/20 text-sm"
+          >
+            <span className="text-lg leading-none">+</span> Nouvelle tâche
+          </button>
+        </div>
 
-      {/* Sous-titre */}
-      <p className="mt-4 text-lg text-gray-500">
-        Gérez vos tâches efficacement
-      </p>
+        <p className="text-stone-500 text-sm mb-8">
+          {tasks.filter(t => !t.completed).length} tâche{tasks.filter(t => !t.completed).length !== 1 ? 's' : ''} en cours
+        </p>
 
-      {/* Bouton d'action */}
-      <button
-        className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-white font-medium hover:bg-blue-700 transition-colors"
-        aria-label="Commencer à utiliser TaskManager"
-      >
-        Commencer
-      </button>
+        {/* Formulaire de création (collapsible) */}
+        {showForm && (
+          <div className="mb-8">
+            <TaskCreateForm onCreateTask={handleCreate} onCancel={() => setShowForm(false)} />
+          </div>
+        )}
 
-      {/* Formulaire de création */}
-      <div className="mt-10 w-full max-w-lg">
-        <TaskCreateForm onCreateTask={handleCreate} />
-      </div>
+        {/* Filtres */}
+        <div className="mb-6">
+          <TaskFilters
+            search={search}
+            onSearchChange={setSearch}
+            priority={priority}
+            onPriorityChange={setPriority}
+            onReset={() => { setSearch(''); setPriority(''); }}
+          />
+        </div>
 
-      {/* Filtres */}
-      <div className="mt-6 w-full max-w-5xl">
-        <TaskFilters
-          search={search}
-          onSearchChange={setSearch}
-          priority={priority}
-          onPriorityChange={setPriority}
-          onReset={() => { setSearch(''); setPriority(''); }}
-        />
-      </div>
-
-      {/* Liste des tâches filtrées */}
-      <div className="mt-6 w-full max-w-5xl">
+        {/* Liste des tâches filtrées */}
         <TaskList
           tasks={filteredTasks}
           onToggle={handleToggle}

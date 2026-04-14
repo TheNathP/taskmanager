@@ -3,6 +3,8 @@
 /**
  * Composant TaskItem
  *
+ * Carte de tâche au style coloré inspiré de l'image de référence.
+ *
  * @param {string}   title       - Le titre de la tâche
  * @param {string}   description - La description détaillée de la tâche
  * @param {string}   priority    - Niveau de priorité ('High', 'Medium', 'Low')
@@ -11,49 +13,67 @@
  * @param {function} onDelete    - Fonction appelée lors de la suppression
  */
 const TaskItem = ({ title, description, priority, completed, onComplete, onDelete }) => {
-    // Association des priorités à des styles Tailwind
-    const priorityColors = {
-        High: 'text-red-600 bg-red-50',
-        Medium: 'text-amber-600 bg-amber-50',
-        Low: 'text-emerald-600 bg-emerald-50',
+    // Association des priorités à des couleurs de carte vives
+    const cardColors = {
+        High: 'bg-[#E05C4A]',    // Coral rouge
+        Medium: 'bg-[#D4A827]',  // Jaune doré
+        Low: 'bg-[#2A8C6E]',     // Vert émeraude
     };
 
-    const priorityStyle = priorityColors[priority] || 'text-slate-600 bg-slate-50';
+    const cardBg = cardColors[priority] || 'bg-[#3D6FE8]';
+
+    const priorityLabels = {
+        High: 'Haute',
+        Medium: 'Moyenne',
+        Low: 'Basse',
+    };
 
     return (
-        <article className="flex flex-col p-6 bg-white rounded-[2rem] shadow-sm border border-slate-100 max-w-sm">
-            {/* Contenu de la tâche */}
-            <div className="flex flex-col space-y-2 mb-6">
-                <h3 className={`text-xl font-bold text-slate-900 ${completed ? 'line-through opacity-50' : ''}`}>
+        <article className={`flex flex-col justify-between p-5 rounded-[1.75rem] min-h-[140px] ${cardBg} ${completed ? 'opacity-60' : ''} transition-opacity`}>
+            {/* En-tête : titre + badge état */}
+            <div className="flex items-start justify-between gap-3 mb-4">
+                <h3 className={`text-lg font-extrabold text-white leading-snug ${completed ? 'line-through' : ''}`}>
                     {title}
                 </h3>
-
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit ${priorityStyle}`}>
-                    {priority}
-                </span>
-
-                <p className="text-slate-500 text-sm leading-relaxed">
-                    {description}
-                </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-3">
+                {/* Cercle de complétion */}
                 <button
                     type="button"
                     onClick={onComplete}
-                    aria-label={`Marquer la tâche "${title}" comme complétée`}
-                    className="flex-1 px-4 py-3 bg-[#2E5BFF] hover:bg-blue-700 text-white text-sm font-bold rounded-full transition-all active:scale-95"
+                    aria-label={`Marquer la tâche "${title}" comme ${completed ? 'non complétée' : 'complétée'}`}
+                    className={`flex-shrink-0 w-7 h-7 rounded-full border-2 border-white/70 flex items-center justify-center transition-all active:scale-90 ${completed ? 'bg-white' : 'bg-transparent hover:bg-white/20'}`}
                 >
-                    Compléter
+                    {completed && (
+                        <svg className="w-4 h-4 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    )}
                 </button>
+            </div>
 
+            {/* Description */}
+            {description && (
+                <p className="text-white/75 text-xs leading-relaxed mb-4 line-clamp-2">
+                    {description}
+                </p>
+            )}
+
+            {/* Pied de carte : priorité + supprimer */}
+            <div className="flex items-center justify-between mt-auto">
+                {/* Badge priorité */}
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-black/15 text-white text-xs font-bold uppercase tracking-wider">
+                    {priorityLabels[priority] || priority}
+                </span>
+
+                {/* Bouton supprimer */}
                 <button
                     type="button"
                     onClick={onDelete}
                     aria-label={`Supprimer la tâche "${title}"`}
-                    className="px-4 py-3 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 text-sm font-bold rounded-full transition-all active:scale-95"
+                    className="flex items-center gap-1 text-white/70 hover:text-white text-xs font-semibold transition-colors active:scale-95"
                 >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                     Supprimer
                 </button>
             </div>
