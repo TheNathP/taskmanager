@@ -1,0 +1,27 @@
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+Ce projet est une application de gestion de tâches (TaskManager) construite avec
+Next.js (App Router) et Tailwind CSS.
+Conventions du projet :
+- Composants fonctionnels React avec hooks
+- Tailwind CSS pour tout le style (pas de CSS-in-JS, pas de fichiers .css)
+- "use client" obligatoire pour tout composant avec useState, useEffect ou
+événements
+- Un composant par fichier dans src/components/
+- Pages dans src/app/ (App Router Next.js)
+- Noms de variables et fonctions en anglais
+- Accessibilité : labels, aria-attributes, navigation clavier sur tous les
+éléments interactifs
+Composants existants :
+- TaskItem : affiche une tâche individuelle
+- TaskList : affiche la liste des tâches
+- SearchBar : barre de recherche
+- FilterBar : filtres par statut (toutes/actives/complétées)
+Quand tu génères du code :
+- Suis les conventions ci-dessus
+- Vérifie l'accessibilité
+- Gère les cas limites (liste vide, valeurs nulles)
