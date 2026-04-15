@@ -9,7 +9,8 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
 } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { auth, db } from "../lib/firebase";
 
 const AuthContext = createContext(undefined);
 
@@ -47,10 +48,35 @@ export function AuthProvider({ children }) {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const syncUserProfile = async (firebaseUser) => {
+    if (!firebaseUser?.uid || !firebaseUser?.email) {
+      return;
+    }
+
+    const normalizedEmail = firebaseUser.email.trim().toLowerCase();
+
+    await setDoc(
+      doc(db, "users", firebaseUser.uid),
+      {
+        email: firebaseUser.email,
+        emailLowercase: normalizedEmail,
+        displayName: firebaseUser.displayName || "",
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
+        if (firebaseUser) {
+          syncUserProfile(firebaseUser).catch(() => {
+            // Avoid blocking auth state if profile sync fails.
+          });
+        }
+
         setUser(firebaseUser);
         setIsAuthLoading(false);
       },

@@ -6,6 +6,7 @@ import TaskList from '../src/components/TaskList';
 import TaskCreateForm from '../src/components/TaskCreateForm';
 import TaskFilters from '../src/components/TaskFilters';
 import Dashboard from '../src/components/Dashboard';
+import Navigation from '../src/components/Navigation';
 import { useAuth } from "../src/contexts/AuthContext";
 import {
   addTask,
@@ -17,10 +18,7 @@ import {
 /* Page d'accueil principale de TaskManager */
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthLoading, signOut } = useAuth();
-
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState("");
+  const { user, isAuthLoading } = useAuth();
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -139,20 +137,6 @@ export default function Home() {
     }
   };
 
-  const handleSignOut = async () => {
-    setSignOutError("");
-    setIsSigningOut(true);
-
-    try {
-      await signOut();
-      router.replace("/login");
-    } catch (error) {
-      setSignOutError(error.message || "Impossible de se deconnecter.");
-    } finally {
-      setIsSigningOut(false);
-    }
-  };
-
   /* Tâches filtrées selon la recherche et la priorité */
   const filteredTasks = tasks
     .filter((task) =>
@@ -165,6 +149,10 @@ export default function Home() {
     <main className="min-h-screen bg-[#F2EDE4] px-4 py-10 sm:px-8">
       {/* Header */}
       <div className="max-w-2xl mx-auto">
+        <div className="mb-6">
+          <Navigation />
+        </div>
+
         <div className="flex items-center justify-between mb-2">
           <div>
             <p className="text-sm font-medium text-stone-500 tracking-wide uppercase">Bonjour 👋</p>
@@ -174,15 +162,6 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              aria-label="Se deconnecter"
-              className="rounded-full border border-stone-300 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSigningOut ? "Deconnexion..." : "Se deconnecter"}
-            </button>
-            <button
               onClick={() => setShowForm((v) => !v)}
               aria-label="Créer une nouvelle tâche"
               className="flex items-center gap-2 bg-[#3D6FE8] hover:bg-blue-700 active:scale-95 transition-all text-white font-bold px-5 py-3 rounded-full shadow-lg shadow-blue-500/20 text-sm"
@@ -191,15 +170,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-
-        {signOutError && (
-          <p
-            role="alert"
-            className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
-          >
-            {signOutError}
-          </p>
-        )}
 
         {error && (
           <p
