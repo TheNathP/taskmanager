@@ -4,6 +4,7 @@ import { useState } from 'react';
 import TaskList from '../src/components/TaskList';
 import TaskCreateForm from '../src/components/TaskCreateForm';
 import TaskFilters from '../src/components/TaskFilters';
+import Dashboard from '../src/components/Dashboard';
 
 /* Page d'accueil principale de TaskManager */
 export default function Home() {
@@ -76,6 +77,11 @@ export default function Home() {
             <TaskCreateForm onCreateTask={handleCreate} onCancel={() => setShowForm(false)} />
           </div>
         )}
+
+        {/* Tableau de bord */}
+        <div className="mb-6">
+          <Dashboard tasks={tasks} />
+        </div>
 
         {/* Filtres */}
         <div className="mb-6">
