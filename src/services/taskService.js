@@ -57,9 +57,14 @@ export const getUserTasks = async (userId) => {
 
 export const addTask = async (userId, task) => {
   try {
+    const title = task?.title?.trim();
+    if (!title) {
+      throw new Error("Task title is required.");
+    }
+
     const tasksRef = getTasksCollectionRef(userId);
     const taskData = {
-      title: task?.title ?? "",
+      title,
       completed: false,
       priority: task?.priority ?? "medium",
       createdAt: serverTimestamp(),
@@ -74,8 +79,14 @@ export const addTask = async (userId, task) => {
 
 export const updateTask = async (userId, taskId, updates) => {
   try {
+    if (!userId) {
+      throw new Error("User ID is required to update a task.");
+    }
     if (!taskId) {
       throw new Error("Task ID is required to update a task.");
+    }
+    if (!updates || typeof updates !== "object") {
+      throw new Error("Updates object is required to update a task.");
     }
 
     const taskRef = doc(db, "users", userId, "tasks", taskId);
@@ -87,6 +98,9 @@ export const updateTask = async (userId, taskId, updates) => {
 
 export const deleteTask = async (userId, taskId) => {
   try {
+    if (!userId) {
+      throw new Error("User ID is required to delete a task.");
+    }
     if (!taskId) {
       throw new Error("Task ID is required to delete a task.");
     }

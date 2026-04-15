@@ -43,6 +43,13 @@ const getFirebaseAuthErrorMessage = (error) => {
   return errorMessages[code] || "Une erreur est survenue lors de l'authentification.";
 };
 
+const createFriendlyAuthError = (firebaseError) => {
+  const message = getFirebaseAuthErrorMessage(firebaseError);
+  const authError = new Error(message);
+  authError.code = firebaseError?.code;
+  return authError;
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -72,8 +79,11 @@ export function AuthProvider({ children }) {
       auth,
       (firebaseUser) => {
         if (firebaseUser) {
-          syncUserProfile(firebaseUser).catch(() => {
-            // Avoid blocking auth state if profile sync fails.
+          syncUserProfile(firebaseUser).catch((profileError) => {
+            console.error("Impossible de synchroniser le profil utilisateur.", profileError);
+            setError(
+              "Impossible de synchroniser votre profil pour le partage de listes. Reessayez plus tard."
+            );
           });
         }
 
@@ -94,9 +104,9 @@ export function AuthProvider({ children }) {
     try {
       return await createUserWithEmailAndPassword(auth, email, password);
     } catch (firebaseError) {
-      const message = getFirebaseAuthErrorMessage(firebaseError);
-      setError(message);
-      throw new Error(message);
+      const authError = createFriendlyAuthError(firebaseError);
+      setError(authError.message);
+      throw authError;
     }
   };
 
@@ -105,9 +115,9 @@ export function AuthProvider({ children }) {
     try {
       return await signInWithEmailAndPassword(auth, email, password);
     } catch (firebaseError) {
-      const message = getFirebaseAuthErrorMessage(firebaseError);
-      setError(message);
-      throw new Error(message);
+      const authError = createFriendlyAuthError(firebaseError);
+      setError(authError.message);
+      throw authError;
     }
   };
 
@@ -117,9 +127,9 @@ export function AuthProvider({ children }) {
       const provider = new GoogleAuthProvider();
       return await signInWithPopup(auth, provider);
     } catch (firebaseError) {
-      const message = getFirebaseAuthErrorMessage(firebaseError);
-      setError(message);
-      throw new Error(message);
+      const authError = createFriendlyAuthError(firebaseError);
+      setError(authError.message);
+      throw authError;
     }
   };
 
@@ -128,9 +138,9 @@ export function AuthProvider({ children }) {
     try {
       await firebaseSignOut(auth);
     } catch (firebaseError) {
-      const message = getFirebaseAuthErrorMessage(firebaseError);
-      setError(message);
-      throw new Error(message);
+      const authError = createFriendlyAuthError(firebaseError);
+      setError(authError.message);
+      throw authError;
     }
   };
 

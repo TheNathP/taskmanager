@@ -154,7 +154,6 @@ export default function SharedPage() {
       await addMemberToList(selectedList.id, email);
     } catch (addMemberError) {
       setError(addMemberError.message || "Impossible d'ajouter ce membre.");
-      throw addMemberError;
     }
   };
 
@@ -166,7 +165,6 @@ export default function SharedPage() {
       await removeMemberFromList(selectedList.id, memberId);
     } catch (removeMemberError) {
       setError(removeMemberError.message || 'Impossible de retirer ce membre.');
-      throw removeMemberError;
     }
   };
 
@@ -178,7 +176,6 @@ export default function SharedPage() {
       await addSharedTask(selectedList.id, user.uid, task);
     } catch (addTaskError) {
       setError(addTaskError.message || "Impossible d'ajouter la tâche.");
-      throw addTaskError;
     }
   };
 
@@ -190,7 +187,6 @@ export default function SharedPage() {
       await updateSharedTask(selectedList.id, taskId, updates);
     } catch (updateTaskError) {
       setError(updateTaskError.message || 'Impossible de mettre à jour la tâche.');
-      throw updateTaskError;
     }
   };
 
@@ -202,15 +198,14 @@ export default function SharedPage() {
       await deleteSharedTask(selectedList.id, taskId);
     } catch (deleteTaskError) {
       setError(deleteTaskError.message || 'Impossible de supprimer la tâche.');
-      throw deleteTaskError;
     }
   };
 
   if (isAuthLoading) {
     return (
       <main className="min-h-screen bg-[#F2EDE4] px-4 py-10 sm:px-8">
-        <div className="mx-auto max-w-4xl text-sm font-medium text-stone-500">
-          Verification de la session...
+        <div className="mx-auto max-w-4xl text-sm font-medium text-stone-500" aria-busy="true" aria-live="polite">
+          Vérification de la session...
         </div>
       </main>
     );
@@ -250,12 +245,22 @@ export default function SharedPage() {
             onDeleteTask={handleDeleteTask}
             onBack={() => setSelectedListId('')}
           />
+        ) : selectedListId ? (
+          <div className="rounded-[2rem] border border-dashed border-stone-300 bg-white p-8 text-center shadow-sm">
+            <p className="text-sm font-bold text-stone-700">Cette liste n'existe plus.</p>
+            <button
+              onClick={() => setSelectedListId('')}
+              className="mt-3 text-sm text-[#3D6FE8] font-medium hover:underline"
+            >
+              Revenir aux listes
+            </button>
+          </div>
         ) : (
           <>
             <CreateListForm onCreateList={handleCreateList} />
 
             {loading ? (
-              <p className="rounded-xl bg-white px-4 py-3 text-sm font-medium text-stone-600">
+              <p className="rounded-xl bg-white px-4 py-3 text-sm font-medium text-stone-600" aria-live="polite" aria-busy="true">
                 Chargement...
               </p>
             ) : sharedLists.length === 0 ? (

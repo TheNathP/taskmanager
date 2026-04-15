@@ -208,9 +208,20 @@ export const addMemberToList = async (listId, email) => {
       throw new Error("Member email is required.");
     }
 
+    // Vérifier que la liste existe et que l'utilisateur est propriétaire
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) {
+      throw new Error("User session expired. Please log in again.");
+    }
+
+    const { data: listData } = await getSharedListById(listId);
+    if (listData.ownerId !== currentUserId) {
+      throw new Error("Only the list owner can add members.");
+    }
+
     const userDoc = await findUserByEmail(email);
     if (!userDoc) {
-      throw new Error("No user found with this email.");
+      throw new Error("Impossible d'ajouter ce membre. Vérifiez l'email ou l'accès.");
     }
 
     const memberId = userDoc.id;
@@ -229,10 +240,14 @@ export const removeMemberFromList = async (listId, userId) => {
       throw new Error("User ID is required to remove a member.");
     }
 
-    const { ref: listRef, data: listData } = await getSharedListById(listId);
     const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) {
+      throw new Error("User session expired. Please log in again.");
+    }
 
-    if (!currentUserId || currentUserId !== listData.ownerId) {
+    const { ref: listRef, data: listData } = await getSharedListById(listId);
+
+    if (currentUserId !== listData.ownerId) {
       throw new Error("Only the list owner can remove members.");
     }
 
@@ -308,8 +323,18 @@ export const updateSharedTask = async (listId, taskId, updates) => {
       throw new Error("Task ID is required to update a shared task.");
     }
 
+    // Valider et filtrer les champs autorisés
+    const allowedFields = ['title', 'completed', 'priority'];
+    const validUpdates = Object.fromEntries(
+      Object.entries(updates || {}).filter(([key]) => allowedFields.includes(key))
+    );
+
+    if (Object.keys(validUpdates).length === 0) {
+      throw new Error("No valid fields provided for update.");
+    }
+
     const taskRef = doc(db, "sharedLists", listId, "tasks", taskId);
-    await updateDoc(taskRef, updates);
+    await updateDoc(taskRef, validUpdates);
   } catch (error) {
     throw formatServiceError(error, "Failed to update shared task");
   }
