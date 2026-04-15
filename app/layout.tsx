@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "../src/contexts/AuthContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,7 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="h-full antialiased">
-      <body className={`${inter.className} min-h-full flex flex-col bg-[#F2EDE4]`}>{children}</body>
+      <body className={`${inter.className} min-h-full flex flex-col bg-[#F2EDE4]`}>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

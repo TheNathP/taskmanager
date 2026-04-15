@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const EMAIL_PATTERN = /\S+@\S+\.\S+/;
 
@@ -69,14 +69,21 @@ const LoginForm = ({ showGoogleSignIn = true }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-sm"
+      className="w-full max-w-md space-y-5 rounded-[2rem] bg-white p-6 shadow-sm"
       aria-describedby={displayedError ? "login-form-error" : undefined}
     >
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-stone-500">Authentification</p>
+        <h1 className="mt-1 text-2xl font-black text-stone-900">
+          Connexion <span className="text-[#3D6FE8]">TaskManager</span>
+        </h1>
+      </div>
+
       {displayedError && (
         <p
           id="login-form-error"
           role="alert"
-          className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600"
+          className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
         >
           {displayedError}
         </p>
@@ -97,10 +104,10 @@ const LoginForm = ({ showGoogleSignIn = true }) => {
             }
           }}
           placeholder="votre@email.com"
-          className={`w-full rounded-xl border px-4 py-3 text-sm text-stone-900 outline-none transition ${
+          className={`w-full rounded-xl border-2 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition ${
             errors.email
-              ? "border-red-400 focus:border-red-500"
-              : "border-stone-300 focus:border-blue-500"
+              ? "border-red-300 focus:border-red-400"
+              : "border-transparent focus:border-[#3D6FE8] focus:bg-white"
           }`}
           aria-invalid={Boolean(errors.email)}
           aria-describedby={errors.email ? "login-email-error" : undefined}
@@ -128,10 +135,10 @@ const LoginForm = ({ showGoogleSignIn = true }) => {
             }
           }}
           placeholder="Votre mot de passe"
-          className={`w-full rounded-xl border px-4 py-3 text-sm text-stone-900 outline-none transition ${
+          className={`w-full rounded-xl border-2 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition ${
             errors.password
-              ? "border-red-400 focus:border-red-500"
-              : "border-stone-300 focus:border-blue-500"
+              ? "border-red-300 focus:border-red-400"
+              : "border-transparent focus:border-[#3D6FE8] focus:bg-white"
           }`}
           aria-invalid={Boolean(errors.password)}
           aria-describedby={errors.password ? "login-password-error" : undefined}
@@ -147,7 +154,7 @@ const LoginForm = ({ showGoogleSignIn = true }) => {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+        className="w-full rounded-full bg-[#3D6FE8] px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
       >
         {isLoading ? "Connexion..." : "Se connecter"}
       </button>
@@ -158,7 +165,7 @@ const LoginForm = ({ showGoogleSignIn = true }) => {
           onClick={handleGoogleSignIn}
           disabled={isLoading}
           aria-label="Se connecter avec Google (ouvre une fenetre)"
-          className="w-full rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Se connecter avec Google
         </button>
@@ -166,7 +173,7 @@ const LoginForm = ({ showGoogleSignIn = true }) => {
 
       <p className="text-center text-sm text-stone-600">
         Pas encore de compte ?{" "}
-        <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700">
+        <Link href="/signup" className="font-bold text-[#3D6FE8] hover:text-blue-700">
           S&apos;inscrire
         </Link>
       </p>
