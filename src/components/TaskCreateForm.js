@@ -14,8 +14,7 @@ const TaskCreateForm = ({ onCreateTask, onCancel }) => {
     /* Données du formulaire */
     const [formData, setFormData] = useState({
         title: '',
-        description: '',
-        priority: 'Medium',
+        priority: 'medium',
     });
 
     /* Erreurs de validation */
@@ -47,14 +46,17 @@ const TaskCreateForm = ({ onCreateTask, onCancel }) => {
             return;
         }
 
-        onCreateTask({ ...formData, id: Date.now(), completed: false });
-        setFormData({ title: '', description: '', priority: 'Medium' });
+        onCreateTask({
+            title: formData.title.trim(),
+            priority: formData.priority || 'medium',
+        });
+        setFormData({ title: '', priority: 'medium' });
     };
 
     const priorityColors = {
-        High: 'bg-[#E05C4A]',
-        Medium: 'bg-[#D4A827]',
-        Low: 'bg-[#2A8C6E]',
+        high: 'bg-[#E05C4A]',
+        medium: 'bg-[#D4A827]',
+        low: 'bg-[#2A8C6E]',
     };
 
     return (
@@ -103,23 +105,12 @@ const TaskCreateForm = ({ onCreateTask, onCancel }) => {
                 )}
             </div>
 
-            {/* Champ Description */}
-            <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Ajouter une description..."
-                rows="3"
-                className="px-5 py-3 bg-stone-50 border-2 border-transparent rounded-xl outline-none transition-all focus:bg-white focus:border-[#3D6FE8] text-stone-700 placeholder-stone-400 resize-none text-sm"
-            />
-
             {/* Sélecteur de priorité — style pill boutons */}
             <div>
                 <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 ml-1">Priorité</p>
                 <div className="flex gap-2">
-                    {['Low', 'Medium', 'High'].map((p) => {
-                        const labels = { Low: 'Basse', Medium: 'Moyenne', High: 'Haute' };
+                    {['low', 'medium', 'high'].map((p) => {
+                        const labels = { low: 'Basse', medium: 'Moyenne', high: 'Haute' };
                         const selected = formData.priority === p;
                         return (
                             <button

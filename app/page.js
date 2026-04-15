@@ -7,6 +7,12 @@ import TaskCreateForm from '../src/components/TaskCreateForm';
 import TaskFilters from '../src/components/TaskFilters';
 import Dashboard from '../src/components/Dashboard';
 import { useAuth } from "../src/contexts/AuthContext";
+import {
+  addTask,
+  deleteTask,
+  subscribeToTasks,
+  updateTask,
+} from "../src/services/taskService";
 
 /* Page d'accueil principale de TaskManager */
 export default function Home() {
@@ -16,12 +22,9 @@ export default function Home() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
 
-  /* État initial des tâches */
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Créer le design system', description: 'Définir les couleurs, typographies et composants de base.', priority: 'High', completed: false },
-    { id: 2, title: "Intégrer l'API REST", description: 'Connecter le front-end aux endpoints du back-end.', priority: 'Medium', completed: false },
-    { id: 3, title: 'Rédiger la documentation', description: 'Documenter les composants et les règles du projet.', priority: 'Low', completed: true },
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [priority, setPriority] = useState('');
@@ -31,6 +34,30 @@ export default function Home() {
       router.replace("/login");
     }
   }, [isAuthLoading, router, user]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setTasks([]);
+      setLoading(false);
+      return undefined;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const unsubscribe = subscribeToTasks(user.uid, (nextTasks) => {
+        setTasks(nextTasks);
+        setLoading(false);
+      });
+
+      return unsubscribe;
+    } catch (subscriptionError) {
+      setError(subscriptionError.message || "Impossible de charger les taches.");
+      setLoading(false);
+      return undefined;
+    }
+  }, [user?.uid]);
 
   if (isAuthLoading) {
     return (
@@ -47,21 +74,69 @@ export default function Home() {
   }
 
   /* Bascule l'état complété d'une tâche */
-  const handleToggle = (id) => {
-    setTasks(tasks.map((task) =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+  const normalizePriority = (taskPriority) => {
+    if (!taskPriority || typeof taskPriority !== "string") {
+      return "Medium";
+    }
+
+    const lowerPriority = taskPriority.toLowerCase();
+
+    if (lowerPriority === "high") return "High";
+    if (lowerPriority === "low") return "Low";
+    return "Medium";
+  };
+
+  const handleToggle = async (id) => {
+    if (!user?.uid) {
+      return;
+    }
+
+    const task = tasks.find((item) => item.id === id);
+    if (!task) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      await updateTask(user.uid, id, { completed: !task.completed });
+    } catch (updateError) {
+      setError(updateError.message || "Impossible de mettre a jour la tache.");
+    }
   };
 
   /* Supprime une tâche de la liste */
-  const handleDelete = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+  const handleDelete = async (id) => {
+    if (!user?.uid) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      await deleteTask(user.uid, id);
+    } catch (deleteError) {
+      setError(deleteError.message || "Impossible de supprimer la tache.");
+    }
   };
 
   /* Ajoute une nouvelle tâche en haut de la liste */
-  const handleCreate = (newTask) => {
-    setTasks((prev) => [newTask, ...prev]);
-    setShowForm(false);
+  const handleCreate = async (newTask) => {
+    if (!user?.uid) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      await addTask(user.uid, {
+        title: newTask.title,
+        priority: normalizePriority(newTask.priority),
+      });
+      setShowForm(false);
+    } catch (createError) {
+      setError(createError.message || "Impossible de creer la tache.");
+    }
   };
 
   const handleSignOut = async () => {
@@ -82,7 +157,7 @@ export default function Home() {
   const filteredTasks = tasks
     .filter((task) =>
       task.title.toLowerCase().includes(search.toLowerCase()) ||
-      task.description.toLowerCase().includes(search.toLowerCase())
+      (task.description || "").toLowerCase().includes(search.toLowerCase())
     )
     .filter((task) => (priority ? task.priority === priority : true));
 
@@ -126,6 +201,15 @@ export default function Home() {
           </p>
         )}
 
+        {error && (
+          <p
+            role="alert"
+            className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
+          >
+            {error}
+          </p>
+        )}
+
         <p className="text-stone-500 text-sm mb-8">
           {tasks.filter(t => !t.completed).length} tâche{tasks.filter(t => !t.completed).length !== 1 ? 's' : ''} en cours
         </p>
@@ -154,11 +238,17 @@ export default function Home() {
         </div>
 
         {/* Liste des tâches filtrées */}
-        <TaskList
-          tasks={filteredTasks}
-          onToggle={handleToggle}
-          onDelete={handleDelete}
-        />
+        {loading ? (
+          <p className="rounded-xl bg-white px-4 py-3 text-sm font-medium text-stone-600">
+            Chargement...
+          </p>
+        ) : (
+          <TaskList
+            tasks={filteredTasks}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
     </main>
   );
