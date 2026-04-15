@@ -48,28 +48,37 @@ export default function SharedPage() {
     setError('');
 
     try {
-      const unsubscribe = subscribeToSharedLists(user.uid, async (lists) => {
-        try {
-          const listsWithStats = await Promise.all(
-            lists.map(async (list) => {
-              const tasks = await getSharedListTasks(list.id);
-              const completedTasks = tasks.filter((task) => task.completed).length;
+      const unsubscribe = subscribeToSharedLists(
+        user.uid,
+        async (lists) => {
+          try {
+            const listsWithStats = await Promise.all(
+              lists.map(async (list) => {
+                const tasks = await getSharedListTasks(list.id);
+                const completedTasks = tasks.filter((task) => task.completed).length;
 
-              return {
-                ...list,
-                totalTasks: tasks.length,
-                completedTasks,
-              };
-            })
+                return {
+                  ...list,
+                  totalTasks: tasks.length,
+                  completedTasks,
+                };
+              })
+            );
+
+            setSharedLists(listsWithStats);
+            setLoading(false);
+          } catch (listsError) {
+            setError(listsError.message || 'Impossible de charger les statistiques des listes.');
+            setLoading(false);
+          }
+        },
+        (subscriptionError) => {
+          setError(
+            subscriptionError.message || 'Impossible de charger les listes partagées.'
           );
-
-          setSharedLists(listsWithStats);
-          setLoading(false);
-        } catch (listsError) {
-          setError(listsError.message || 'Impossible de charger les statistiques des listes.');
           setLoading(false);
         }
-      });
+      );
 
       return unsubscribe;
     } catch (subscriptionError) {
@@ -93,9 +102,17 @@ export default function SharedPage() {
     setError('');
 
     try {
-      const unsubscribe = subscribeToSharedTasks(selectedListId, (tasks) => {
-        setSelectedTasks(tasks);
-      });
+      const unsubscribe = subscribeToSharedTasks(
+        selectedListId,
+        (tasks) => {
+          setSelectedTasks(tasks);
+        },
+        (subscriptionError) => {
+          setError(
+            subscriptionError.message || "Impossible de charger les tâches partagées."
+          );
+        }
+      );
 
       return unsubscribe;
     } catch (subscriptionError) {

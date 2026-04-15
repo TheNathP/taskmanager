@@ -12,6 +12,19 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
+const PERMISSION_DENIED_MESSAGE =
+  "Accès refusé. Vous n'avez pas la permission d'effectuer cette action.";
+
+const formatServiceError = (error, fallbackMessage) => {
+  const code = error?.code || "";
+
+  if (code === "permission-denied" || code === "firestore/permission-denied") {
+    return new Error(PERMISSION_DENIED_MESSAGE);
+  }
+
+  return new Error(`${fallbackMessage}: ${error?.message || "unknown error"}.`);
+};
+
 const getTasksCollectionRef = (userId) => {
   if (!userId) {
     throw new Error("User ID is required to access tasks.");
@@ -38,9 +51,7 @@ export const getUserTasks = async (userId) => {
       };
     });
   } catch (error) {
-    throw new Error(
-      `Failed to fetch user tasks: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to fetch user tasks");
   }
 };
 
@@ -57,9 +68,7 @@ export const addTask = async (userId, task) => {
     const docRef = await addDoc(tasksRef, taskData);
     return docRef.id;
   } catch (error) {
-    throw new Error(
-      `Failed to add task: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to add task");
   }
 };
 
@@ -72,9 +81,7 @@ export const updateTask = async (userId, taskId, updates) => {
     const taskRef = doc(db, "users", userId, "tasks", taskId);
     await updateDoc(taskRef, updates);
   } catch (error) {
-    throw new Error(
-      `Failed to update task: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to update task");
   }
 };
 
@@ -87,13 +94,11 @@ export const deleteTask = async (userId, taskId) => {
     const taskRef = doc(db, "users", userId, "tasks", taskId);
     await deleteDoc(taskRef);
   } catch (error) {
-    throw new Error(
-      `Failed to delete task: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to delete task");
   }
 };
 
-export const subscribeToTasks = (userId, callback) => {
+export const subscribeToTasks = (userId, callback, onError) => {
   try {
     if (typeof callback !== "function") {
       throw new Error("A valid callback function is required.");
@@ -120,16 +125,18 @@ export const subscribeToTasks = (userId, callback) => {
         callback(tasks);
       },
       (error) => {
-        console.error(
-          `Real-time task subscription failed: ${
-            error.message || "unknown error"
-          }.`
+        const subscriptionError = formatServiceError(
+          error,
+          "Real-time task subscription failed"
         );
+        if (typeof onError === "function") {
+          onError(subscriptionError);
+          return;
+        }
+        console.error(subscriptionError.message);
       }
     );
   } catch (error) {
-    throw new Error(
-      `Failed to subscribe to tasks: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to subscribe to tasks");
   }
 };

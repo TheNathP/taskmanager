@@ -44,10 +44,19 @@ export default function Home() {
     setError("");
 
     try {
-      const unsubscribe = subscribeToTasks(user.uid, (nextTasks) => {
-        setTasks(nextTasks);
-        setLoading(false);
-      });
+      const unsubscribe = subscribeToTasks(
+        user.uid,
+        (nextTasks) => {
+          setTasks(nextTasks);
+          setLoading(false);
+        },
+        (subscriptionError) => {
+          setError(
+            subscriptionError.message || "Impossible de charger les taches."
+          );
+          setLoading(false);
+        }
+      );
 
       return unsubscribe;
     } catch (subscriptionError) {

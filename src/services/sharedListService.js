@@ -18,6 +18,18 @@ import {
 import { auth, db } from "../lib/firebase";
 
 const sharedListsCollection = collection(db, "sharedLists");
+const PERMISSION_DENIED_MESSAGE =
+  "Accès refusé. Vous n'avez pas la permission d'effectuer cette action.";
+
+const formatServiceError = (error, fallbackMessage) => {
+  const code = error?.code || "";
+
+  if (code === "permission-denied" || code === "firestore/permission-denied") {
+    return new Error(PERMISSION_DENIED_MESSAGE);
+  }
+
+  return new Error(`${fallbackMessage}: ${error?.message || "unknown error"}.`);
+};
 
 const mapSharedList = (listDoc) => {
   const data = listDoc.data();
@@ -132,9 +144,7 @@ export const createSharedList = async (userId, name) => {
 
     return docRef.id;
   } catch (error) {
-    throw new Error(
-      `Failed to create shared list: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to create shared list");
   }
 };
 
@@ -152,13 +162,11 @@ export const getUserSharedLists = async (userId) => {
 
     return sortSharedListsByCreatedAtDesc(snapshot.docs.map(mapSharedList));
   } catch (error) {
-    throw new Error(
-      `Failed to fetch shared lists: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to fetch shared lists");
   }
 };
 
-export const subscribeToSharedLists = (userId, callback) => {
+export const subscribeToSharedLists = (userId, callback, onError) => {
   try {
     if (!userId) {
       throw new Error("User ID is required to subscribe to shared lists.");
@@ -178,17 +186,19 @@ export const subscribeToSharedLists = (userId, callback) => {
         callback(sortSharedListsByCreatedAtDesc(snapshot.docs.map(mapSharedList)));
       },
       (snapshotError) => {
-        console.error(
-          `Shared lists subscription failed: ${
-            snapshotError.message || "unknown error"
-          }.`
+        const subscriptionError = formatServiceError(
+          snapshotError,
+          "Shared lists subscription failed"
         );
+        if (typeof onError === "function") {
+          onError(subscriptionError);
+          return;
+        }
+        console.error(subscriptionError.message);
       }
     );
   } catch (error) {
-    throw new Error(
-      `Failed to subscribe to shared lists: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to subscribe to shared lists");
   }
 };
 
@@ -209,9 +219,7 @@ export const addMemberToList = async (listId, email) => {
       members: arrayUnion(memberId),
     });
   } catch (error) {
-    throw new Error(
-      `Failed to add member: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to add member");
   }
 };
 
@@ -232,9 +240,7 @@ export const removeMemberFromList = async (listId, userId) => {
       members: arrayRemove(userId),
     });
   } catch (error) {
-    throw new Error(
-      `Failed to remove member: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to remove member");
   }
 };
 
@@ -256,9 +262,7 @@ export const deleteSharedList = async (listId, userId) => {
     await Promise.all(tasksSnapshot.docs.map((taskDoc) => deleteDoc(taskDoc.ref)));
     await deleteDoc(listRef);
   } catch (error) {
-    throw new Error(
-      `Failed to delete shared list: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to delete shared list");
   }
 };
 
@@ -270,9 +274,7 @@ export const getSharedListTasks = async (listId) => {
 
     return snapshot.docs.map(mapSharedTask);
   } catch (error) {
-    throw new Error(
-      `Failed to fetch shared tasks: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to fetch shared tasks");
   }
 };
 
@@ -296,9 +298,7 @@ export const addSharedTask = async (listId, userId, task) => {
 
     return docRef.id;
   } catch (error) {
-    throw new Error(
-      `Failed to add shared task: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to add shared task");
   }
 };
 
@@ -311,9 +311,7 @@ export const updateSharedTask = async (listId, taskId, updates) => {
     const taskRef = doc(db, "sharedLists", listId, "tasks", taskId);
     await updateDoc(taskRef, updates);
   } catch (error) {
-    throw new Error(
-      `Failed to update shared task: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to update shared task");
   }
 };
 
@@ -326,13 +324,11 @@ export const deleteSharedTask = async (listId, taskId) => {
     const taskRef = doc(db, "sharedLists", listId, "tasks", taskId);
     await deleteDoc(taskRef);
   } catch (error) {
-    throw new Error(
-      `Failed to delete shared task: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to delete shared task");
   }
 };
 
-export const subscribeToSharedTasks = (listId, callback) => {
+export const subscribeToSharedTasks = (listId, callback, onError) => {
   try {
     if (typeof callback !== "function") {
       throw new Error("A valid callback function is required.");
@@ -347,16 +343,18 @@ export const subscribeToSharedTasks = (listId, callback) => {
         callback(snapshot.docs.map(mapSharedTask));
       },
       (snapshotError) => {
-        console.error(
-          `Shared tasks subscription failed: ${
-            snapshotError.message || "unknown error"
-          }.`
+        const subscriptionError = formatServiceError(
+          snapshotError,
+          "Shared tasks subscription failed"
         );
+        if (typeof onError === "function") {
+          onError(subscriptionError);
+          return;
+        }
+        console.error(subscriptionError.message);
       }
     );
   } catch (error) {
-    throw new Error(
-      `Failed to subscribe to shared tasks: ${error.message || "unknown error"}.`
-    );
+    throw formatServiceError(error, "Failed to subscribe to shared tasks");
   }
 };
