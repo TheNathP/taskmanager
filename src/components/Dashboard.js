@@ -17,18 +17,21 @@ const Dashboard = ({ tasks = [] }) => {
     return (
         <section aria-label="Tableau de bord des tâches" className="w-full space-y-4">
             <header>
-                <h2 className="text-xl font-extrabold text-stone-900">Tableau de bord</h2>
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-500">Vue d'ensemble</p>
+                <h2 className="mt-1 text-2xl font-black text-stone-900">
+                    Tableau de <span className="text-[#3D6FE8]">bord</span>
+                </h2>
             </header>
 
             {totalTasks === 0 ? (
-                <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 p-6 text-center">
-                    <p className="text-sm font-semibold text-stone-600">Aucune tâche à afficher.</p>
+                <div className="rounded-[2rem] border border-dashed border-stone-300 bg-white p-6 text-center shadow-sm">
+                    <p className="text-sm font-bold text-stone-700">Aucune tâche à afficher.</p>
                     <p className="mt-1 text-sm text-stone-500">Ajoutez une tâche pour voir vos statistiques.</p>
                 </div>
             ) : (
                 <>
                     <TaskStats tasks={safeTasks} />
-                    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
                         <ProgressBar percentage={completionRate} label="Progression globale" />
                     </div>
                 </>
