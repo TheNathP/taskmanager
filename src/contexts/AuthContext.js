@@ -44,6 +44,7 @@ const getFirebaseAuthErrorMessage = (error) => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -51,9 +52,11 @@ export function AuthProvider({ children }) {
       auth,
       (firebaseUser) => {
         setUser(firebaseUser);
+        setIsAuthLoading(false);
       },
       (firebaseError) => {
         setError(getFirebaseAuthErrorMessage(firebaseError));
+        setIsAuthLoading(false);
       }
     );
 
@@ -108,13 +111,14 @@ export function AuthProvider({ children }) {
   const contextValue = useMemo(
     () => ({
       user,
+      isAuthLoading,
       error,
       signUp,
       signIn,
       signInWithGoogle,
       signOut,
     }),
-    [user, error]
+    [user, isAuthLoading, error]
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

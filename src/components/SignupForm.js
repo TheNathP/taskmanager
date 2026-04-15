@@ -1,19 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 
 const EMAIL_PATTERN = /\S+@\S+\.\S+/;
 
 const SignupForm = () => {
-  const { signUp, error: authError } = useAuth();
+  const router = useRouter();
+  const { user, isAuthLoading, signUp, error: authError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      router.replace("/");
+    }
+  }, [isAuthLoading, router, user]);
 
   const validateForm = () => {
     const nextErrors = {};
